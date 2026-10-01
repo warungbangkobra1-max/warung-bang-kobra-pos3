@@ -1,0 +1,6 @@
+{
+  "name": "Warung Bang Kobra",
+  "description": "Sistem POS, Pemesanan Bungkus, dan Delivery DQM Realtime untuk Warung Bang Kobra.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

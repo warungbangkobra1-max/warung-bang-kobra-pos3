@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isRole(roleName) {
+      return isAuthenticated() && (
+        getUserData().role == roleName ||
+        request.auth.token.role == roleName
+      );
+    }
+
+    function isOwner() {
+      return isRole('OWNER');
+    }
+
+    function isKasir() {
+      return isRole('KASIR') || isRole('OWNER');
+    }
+
+    function isDelivery() {
+      return isRole('DELIVERY') || isRole('OWNER');
+    }
+
+    // STRICT PROHIBITION: No Dine-in & No Tables
+    match /tables/{tableId} {
+      allow read, write: if false;
+    }
+
+    // USERS COLLECTION
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isOwner());
+      allow delete: if isOwner();
+    }
+
+    // CATEGORIES COLLECTION
+    match /categories/{categoryId} {
+      allow read, write: if true;
+    }
+
+    // PRODUCTS COLLECTION
+    match /products/{productId} {
+      allow read, write: if true;
+    }
+
+    // ORDERS COLLECTION
+    match /orders/{orderId} {
+      // Customers, Kasir, and Delivery can read and create orders
+      allow read, write: if true;
+    }
+
+    // CUSTOMERS COLLECTION
+    match /customers/{customerId} {
+      allow read, write: if true;
+    }
+
+    // STOCK MOVEMENTS COLLECTION
+    match /stock_movements/{movementId} {
+      allow read, write: if true;
+    }
+
+    // EXPENSES COLLECTION
+    match /expenses/{expenseId} {
+      allow read, write: if true;
+    }
+
+    // SETTINGS COLLECTION
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // NOTIFICATIONS
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // AUDIT LOGS
+    match /audit_logs/{logId} {
+      allow read: if isOwner();
+      allow create: if true;
+      allow update, delete: if false;
+    }
+  }
+}
